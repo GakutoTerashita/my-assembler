@@ -39,10 +39,7 @@ export const instructionType = (
     if (instruction.startsWith('(') && instruction.endsWith(')'))
         return 'L_INSTRUCTION';
 
-    if (instruction.includes('='))
-        return 'C_INSTRUCTION';
-
-    throw new Error(`Unknown instruction type for provided instruction: ${instruction}`);
+    return 'C_INSTRUCTION';
 }
 
 export const symbol = (instruction: string, instructionType: InstructionType): string => {
@@ -60,7 +57,18 @@ export const symbol = (instruction: string, instructionType: InstructionType): s
 }
 
 export const dest = (instruction: string): string | null => {
-    const destPart = instruction.split('=')[0];
+    const destPart = instruction.includes('=')
+        ? instruction.split('=')[0]
+        : null;
     return destPart ? destPart.trim() : null;
 }
 
+export const comp = (instruction: string): string => {
+    const compPart = instruction.includes('=')
+        ? instruction.split('=')[1]?.split(';')[0]
+        : instruction.split(';')[0];
+    if (!compPart) {
+        throw new Error(`Comp part not found in instruction: ${instruction}`);
+    }
+    return compPart.trim();
+}

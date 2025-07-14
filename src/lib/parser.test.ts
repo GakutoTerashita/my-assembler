@@ -1,4 +1,4 @@
-import { advanceParser, createParser, dest, hasMoreLines, instructionType, Parser, symbol } from "./parser";
+import { advanceParser, comp, createParser, dest, hasMoreLines, instructionType, Parser, symbol } from "./parser";
 
 describe('Parser', () => {
 
@@ -76,10 +76,8 @@ describe('Parser', () => {
 
         it('returns C_INSTRUCTION for C instructions', () => {
             expect(instructionType('D=M')).toBe('C_INSTRUCTION');
-        });
-
-        it('throws an error for unknown instruction types', () => {
-            expect(() => instructionType('UNKNOWN')).toThrow("Unknown instruction type for provided instruction: UNKNOWN");
+            expect(instructionType('D;JGT')).toBe('C_INSTRUCTION');
+            expect(instructionType('0')).toBe('C_INSTRUCTION');
         });
 
     });
@@ -110,6 +108,32 @@ describe('Parser', () => {
             expect(dest('=M')).toBe(null);
         });
 
+        it('no equal sign means no dest (returns null)', () => {
+            expect(dest('M')).toBe(null);
+        })
+    });
+
+    describe('comp', () => {
+        it('extracts comp from C instruction with dest', () => {
+            expect(comp('D=M')).toBe('M');
+        });
+
+        it('extracts comp from C instruction without dest', () => {
+            expect(comp('M')).toBe('M');
+        });
+
+        it('extracts comp from C instruction with jump', () => {
+            expect(comp('D;JGT')).toBe('D');
+        });
+
+        it('comp part is necessary', () => {
+            expect(() => comp(''))
+                .toThrow("Comp part not found in instruction: ");
+            expect(() => comp('A='))
+                .toThrow("Comp part not found in instruction: A=");
+            expect(() => comp(';JGT'))
+                .toThrow("Comp part not found in instruction: ;JGT");
+        });
     });
 
 });

@@ -6,6 +6,8 @@ export interface Parser {
     readonly instruction: string | null;
 }
 
+export type InstructionType = 'A_INSTRUCTION' | 'C_INSTRUCTION' | 'L_INSTRUCTION';
+
 export const createParser = (content: string): Parser => ({
     lines: breakLines(content),
     index: 0,
@@ -29,7 +31,7 @@ export const advanceParser = (parser: Parser): Parser => {
 
 export const instructionType = (
     instruction: string
-): 'A_INSTRUCTION' | 'C_INSTRUCTION' | 'L_INSTRUCTION' => {
+): InstructionType => {
 
     if (instruction.startsWith('@'))
         return 'A_INSTRUCTION';
@@ -41,4 +43,18 @@ export const instructionType = (
         return 'C_INSTRUCTION';
 
     throw new Error(`Unknown instruction type for provided instruction: ${instruction}`);
+}
+
+export const symbol = (instruction: string, instructionType: InstructionType): string => {
+
+    switch (instructionType) {
+        case 'A_INSTRUCTION':
+            return instruction.slice(1);
+        case 'L_INSTRUCTION':
+            return instruction.slice(1, -1);
+        case 'C_INSTRUCTION':
+            throw new Error(`Symbol cannot be extracted from C instruction: ${instruction}`);
+        default:
+            throw new Error(`Unknown instruction type: ${instructionType}`);
+    }
 }

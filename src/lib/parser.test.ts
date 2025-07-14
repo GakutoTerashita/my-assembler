@@ -1,4 +1,4 @@
-import { advanceParser, createParser, hasMoreLines, instructionType, Parser } from "./parser";
+import { advanceParser, createParser, hasMoreLines, instructionType, Parser, symbol } from "./parser";
 
 describe('Parser', () => {
 
@@ -80,6 +80,22 @@ describe('Parser', () => {
 
         it('throws an error for unknown instruction types', () => {
             expect(() => instructionType('UNKNOWN')).toThrow("Unknown instruction type for provided instruction: UNKNOWN");
+        });
+
+    });
+
+    describe('symbol', () => {
+
+        it('extracts symbol from A instruction', () => {
+            expect(symbol('@123', 'A_INSTRUCTION')).toBe('123');
+        });
+
+        it('extracts symbol from L instruction', () => {
+            expect(symbol('(LOOP)', 'L_INSTRUCTION')).toBe('LOOP');
+        });
+
+        it('throws an error for C instruction', () => {
+            expect(() => symbol('D=M', 'C_INSTRUCTION')).toThrow("Symbol cannot be extracted from C instruction: D=M");
         });
 
     });

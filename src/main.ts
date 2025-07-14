@@ -1,21 +1,15 @@
-import fs from 'fs';
+import { readFile } from "node:fs/promises";
 
 const main = async (): Promise<void> => {
-    const fileNames: string[] = process.argv.slice(2);
+    const fileName: string = process.argv[2];
 
-    if (fileNames.length === 0) {
+    if (!fileName) {
         console.error('No files provided.');
         process.exit(1);
     }
 
-    for (const fileName of fileNames) {
-        try {
-            const content = await fs.promises.readFile(fileName, 'utf-8');
-            console.log(`Content of ${fileName}:\n${content}`);
-        } catch (error) {
-            console.error(`Error reading file ${fileName}:`, error);
-        }
-    }
+    const content = await readFile(fileName, 'utf8');
+    console.log(`Content of ${fileName}:\n${content}`);
 };
 
-main().catch(error => console.error('An unexpected error occurred:', error));
+main().catch(error => console.error('Error occurred:', error));

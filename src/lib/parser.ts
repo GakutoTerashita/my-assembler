@@ -26,3 +26,19 @@ export const advanceParser = (parser: Parser): Parser => {
         instruction: parser.lines[parser.index],
     };
 }
+
+export const instructionType = (
+    instruction: string
+): 'A_INSTRUCTION' | 'C_INSTRUCTION' | 'L_INSTRUCTION' => {
+
+    if (instruction.startsWith('@'))
+        return 'A_INSTRUCTION';
+
+    if (instruction.startsWith('(') && instruction.endsWith(')'))
+        return 'L_INSTRUCTION';
+
+    if (instruction.includes('='))
+        return 'C_INSTRUCTION';
+
+    throw new Error(`Unknown instruction type for provided instruction: ${instruction}`);
+}

@@ -1,4 +1,4 @@
-import { advanceParser, createParser, hasMoreLines, Parser } from "./parser";
+import { advanceParser, createParser, hasMoreLines, instructionType, Parser } from "./parser";
 
 describe('Parser', () => {
 
@@ -60,6 +60,26 @@ describe('Parser', () => {
                 instruction: "Line 1"
             };
             expect(() => advanceParser(parser)).toThrow("No more lines to advance.");
+        });
+
+    });
+
+    describe('instructionType', () => {
+
+        it('returns A_INSTRUCTION for A instructions', () => {
+            expect(instructionType('@123')).toBe('A_INSTRUCTION');
+        });
+
+        it('returns L_INSTRUCTION for L instructions', () => {
+            expect(instructionType('(LOOP)')).toBe('L_INSTRUCTION');
+        });
+
+        it('returns C_INSTRUCTION for C instructions', () => {
+            expect(instructionType('D=M')).toBe('C_INSTRUCTION');
+        });
+
+        it('throws an error for unknown instruction types', () => {
+            expect(() => instructionType('UNKNOWN')).toThrow("Unknown instruction type for provided instruction: UNKNOWN");
         });
 
     });

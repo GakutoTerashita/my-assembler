@@ -3,7 +3,7 @@ import { breakLines } from "./text";
 export interface Parser {
     readonly lines: string[];
     readonly index: number;
-    readonly instruction: string | null;
+    readonly instruction: string;
 }
 
 export type InstructionType =
@@ -14,7 +14,7 @@ export type InstructionType =
 export const createParser = (content: string): Parser => ({
     lines: breakLines(content),
     index: 0,
-    instruction: null,
+    instruction: "## START OF THE FILE ##",
 });
 
 export const hasMoreLines = (parser: Parser): boolean => (

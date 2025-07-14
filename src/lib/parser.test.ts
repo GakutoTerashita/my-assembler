@@ -24,7 +24,7 @@ describe('Parser', () => {
             const parser: Parser = {
                 lines: ["Line 1", "Line 2"],
                 index: 0,
-                instruction: null,
+                instruction: "## START OF THE FILE ##",
             }
             expect(hasMoreLines(parser)).toBe(true);
         });
@@ -33,7 +33,7 @@ describe('Parser', () => {
             const parser: Parser = {
                 lines: ["Line 1", "Line 2"],
                 index: 2,
-                instruction: null,
+                instruction: "## START OF THE FILE ##",
             }
             expect(hasMoreLines(parser)).toBe(false);
         });
@@ -43,10 +43,10 @@ describe('Parser', () => {
     describe('advanceParser', () => {
 
         it('increments the index and sets the instruction', () => {
-            const initialParser = {
+            const initialParser: Parser = {
                 lines: ["Line 1", "Line 2"],
                 index: 0,
-                instruction: null
+                instruction: "## START OF THE FILE ##"
             };
             const nextParser = advanceParser(initialParser);
             expect(nextParser.index).toBe(1);

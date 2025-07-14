@@ -32,7 +32,7 @@ const main = async (): Promise<void> => {
 
         if (type === 'A_INSTRUCTION' || type === 'L_INSTRUCTION') {
             const sym = symbol(parser.instruction, type);
-            console.log(`Symbol: ${sym}`);
+            console.log(`Symbol: ${sym}\n`);
 
             continue;
         }
@@ -40,7 +40,7 @@ const main = async (): Promise<void> => {
         if (type === 'C_INSTRUCTION') {
             const destPart = dest(parser.instruction);
             const compPart = comp(parser.instruction);
-            console.log(`Dest: ${destPart}, Comp: ${compPart}`);
+            console.log(`Dest: ${destPart}, Comp: ${compPart}\n`);
 
             continue;
         }

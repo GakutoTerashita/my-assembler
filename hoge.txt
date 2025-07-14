@@ -1,1 +1,7 @@
-waaaaaaa
+@14
+D=A
+
+(LOOP)
+@HOGE
+M=D
+0;JMP

@@ -9,7 +9,6 @@
     "test": "vitest",
     "test:ui": "vitest --ui --api 3050"
   },
-  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",

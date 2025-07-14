@@ -1,5 +1,13 @@
 import { readFile } from "node:fs/promises";
-import { advanceParser, comp, createParser, dest, hasMoreLines, instructionType, symbol } from "./lib/parser";
+import {
+    advanceParser,
+    comp,
+    createParser,
+    dest,
+    hasMoreLines,
+    instructionType,
+    symbol
+} from "./lib/parser";
 
 const main = async (): Promise<void> => {
     const fileName: string = process.argv[2];

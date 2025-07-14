@@ -6,7 +6,10 @@ export interface Parser {
     readonly instruction: string | null;
 }
 
-export type InstructionType = 'A_INSTRUCTION' | 'C_INSTRUCTION' | 'L_INSTRUCTION';
+export type InstructionType =
+    'A_INSTRUCTION' |
+    'C_INSTRUCTION' |
+    'L_INSTRUCTION';
 
 export const createParser = (content: string): Parser => ({
     lines: breakLines(content),
@@ -42,7 +45,10 @@ export const instructionType = (
     return 'C_INSTRUCTION';
 }
 
-export const symbol = (instruction: string, instructionType: InstructionType): string => {
+export const symbol = (
+    instruction: string,
+    instructionType: InstructionType,
+): string => {
 
     switch (instructionType) {
         case 'A_INSTRUCTION':

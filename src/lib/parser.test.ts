@@ -1,4 +1,4 @@
-import { advanceParser, createParser, hasMoreLines, instructionType, Parser, symbol } from "./parser";
+import { advanceParser, createParser, dest, hasMoreLines, instructionType, Parser, symbol } from "./parser";
 
 describe('Parser', () => {
 
@@ -96,6 +96,18 @@ describe('Parser', () => {
 
         it('throws an error for C instruction', () => {
             expect(() => symbol('D=M', 'C_INSTRUCTION')).toThrow("Symbol cannot be extracted from C instruction: D=M");
+        });
+
+    });
+
+    describe('dest', () => {
+
+        it('extracts dest from C instruction', () => {
+            expect(dest('D=M')).toBe('D');
+        });
+
+        it('returns null if no dest is present', () => {
+            expect(dest('=M')).toBe(null);
         });
 
     });

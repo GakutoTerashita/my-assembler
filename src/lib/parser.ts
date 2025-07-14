@@ -58,3 +58,9 @@ export const symbol = (instruction: string, instructionType: InstructionType): s
             throw new Error(`Unknown instruction type: ${instructionType}`);
     }
 }
+
+export const dest = (instruction: string): string | null => {
+    const destPart = instruction.split('=')[0];
+    return destPart ? destPart.trim() : null;
+}
+

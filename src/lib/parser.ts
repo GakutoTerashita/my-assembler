@@ -1,15 +1,28 @@
 import { breakLines } from "./text";
 
-type Parser = {
-    lines: string[];
-    hasMoreLines: () => boolean;
-};
+export interface Parser {
+    readonly lines: string[];
+    readonly index: number;
+    readonly instruction: string | null;
+}
 
-export const createParser = (text: string): Parser => {
-    const lines = breakLines(text);
+export const createParser = (content: string): Parser => ({
+    lines: breakLines(content),
+    index: 0,
+    instruction: null,
+});
 
+export const hasMoreLines = (parser: Parser): boolean => (
+    parser.index < parser.lines.length
+);
+
+export const advanceParser = (parser: Parser): Parser => {
+    if (!hasMoreLines(parser)) {
+        throw new Error("No more lines to advance.");
+    }
     return {
-        lines,
-        hasMoreLines: () => lines.length > 0
+        ...parser,
+        index: parser.index + 1,
+        instruction: parser.lines[parser.index],
     };
-};
+}

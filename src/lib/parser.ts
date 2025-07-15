@@ -65,11 +65,11 @@ export const symbol = (
 ): string => {
 
     switch (instructionType) {
-        case 'A_INSTRUCTION':
+        case 'A_INSTRUCTION': // @xxx
             return instruction.slice(1);
-        case 'L_INSTRUCTION':
+        case 'L_INSTRUCTION': // (xxx)
             return instruction.slice(1, -1);
-        case 'C_INSTRUCTION':
+        case 'C_INSTRUCTION': // D=M;JGT, D=M, 0
             throw new Error(`Symbol cannot be extracted from C instruction: ${instruction}`);
         default:
             throw new Error(`Unknown instruction type: ${instructionType}`);

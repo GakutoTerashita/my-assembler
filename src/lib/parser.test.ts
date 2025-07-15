@@ -104,12 +104,12 @@ describe('Parser', () => {
             expect(dest('D=M')).toBe('D');
         });
 
-        it('returns null if no dest is present', () => {
-            expect(dest('=M')).toBe(null);
+        it('returns empty string if no dest is present', () => {
+            expect(dest('=M')).toBe('');
         });
 
-        it('no equal sign means no dest (returns null)', () => {
-            expect(dest('M')).toBe(null);
+        it('no equal sign means no dest (returns empty string)', () => {
+            expect(dest('M')).toBe('');
         })
     });
 
@@ -141,12 +141,12 @@ describe('Parser', () => {
             expect(jump('D;JGT')).toBe('JGT');
         });
 
-        it('returns null if no jump is present', () => {
-            expect(jump('D=M')).toBe(null);
+        it('returns empty string if no jump is present', () => {
+            expect(jump('D=M')).toBe('');
         });
 
-        it('no semicolon means no jump (returns null)', () => {
-            expect(jump('M')).toBe(null);
+        it('no semicolon means no jump (returns empty string)', () => {
+            expect(jump('M')).toBe('');
         });
     });
 

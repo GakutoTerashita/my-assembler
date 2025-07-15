@@ -62,11 +62,11 @@ export const symbol = (
     }
 }
 
-export const dest = (instruction: string): string | null => {
+export const dest = (instruction: string): string => {
     const destPart = instruction.includes('=')
         ? instruction.split('=')[0]
         : null;
-    return destPart ? destPart.trim() : null;
+    return destPart ? destPart.trim() : '';
 }
 
 export const comp = (instruction: string): string => {
@@ -79,9 +79,9 @@ export const comp = (instruction: string): string => {
     return compPart.trim();
 }
 
-export const jump = (instruction: string): string | null => {
+export const jump = (instruction: string): string => {
     const jumpPart = instruction.includes(';')
         ? instruction.split(';')[1]
         : null;
-    return jumpPart ? jumpPart.trim() : null;
+    return jumpPart ? jumpPart.trim() : '';
 }

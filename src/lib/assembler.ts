@@ -16,10 +16,12 @@ export const assemble = (assembly: string): string[] => {
         symbolTable: SymbolTable,
         lineNumber: number = 0,
     ) => {
+
         if (!parser_module.hasMoreLines(parserPre)) return;
 
         const nextParser = parser_module.advanceParser(parserPre);
         preprocessLine(nextParser.instruction, lineNumber, symbolTable);
+
         preprocess(nextParser, symbolTable, lineNumber + 1);
     }
 
@@ -30,9 +32,12 @@ export const assemble = (assembly: string): string[] => {
     ): string[] => {
 
         if (!parser_module.hasMoreLines(parser)) return bins;
+
         const nextParser = parser_module.advanceParser(parser);
         const bin = processLine(nextParser.instruction, symbolTable);
+
         console.log(`${bin} : ${nextParser.instruction}`);
+
         return collectBins(nextParser, symbolTable, [...bins, bin]);
     };
 

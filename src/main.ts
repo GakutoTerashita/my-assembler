@@ -20,18 +20,21 @@ const main = async (): Promise<void> => {
     }
 
     const content = await readFile(fileName, 'utf8');
-    const bins: string[] = [];
 
-    let parser = createParser(content);
+    const collectBins = (
+        parser: ReturnType<typeof createParser>,
+        bins: string[] = []
+    ): string[] => {
 
-    while (hasMoreLines(parser)) {
-        parser = advanceParser(parser);
+        if (!hasMoreLines(parser)) return bins;
+        const nextParser = advanceParser(parser);
+        const bin = processLine(nextParser.instruction);
+        console.log(`${bin} : ${nextParser.instruction}`);
+        return collectBins(nextParser, [...bins, bin]);
+    };
 
-        const bin = processLine(parser.instruction);
-
-        console.log(`${bin} : ${parser.instruction}`);
-        bins.push(bin);
-    }
+    const parser0 = createParser(content);
+    const bins = collectBins(parser0);
 
     await writeFile(
         fileName.replace('.asm', '.hack'),

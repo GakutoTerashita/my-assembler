@@ -6,6 +6,11 @@ export const createSymbolTable = (): SymbolTable => {
     for (let i = 0; i < 16; i++) {
         registerSymbol(`R${i}`, i, table);
     }
+    registerSymbol('SP', 0, table);
+    registerSymbol('LCL', 1, table);
+    registerSymbol('ARG', 2, table);
+    registerSymbol('THIS', 3, table);
+    registerSymbol('THAT', 4, table);
     registerSymbol('SCREEN', 16384, table);
     registerSymbol('KBD', 24576, table);
     return table;

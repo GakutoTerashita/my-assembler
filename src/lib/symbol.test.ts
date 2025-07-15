@@ -1,4 +1,28 @@
-import { querySymbol, registerSymbol, resolveSymbol, queryUsableAddress } from "./symbol";
+import {
+    querySymbol,
+    registerSymbol,
+    resolveSymbol,
+    queryUsableAddress,
+    createSymbolTable
+} from "./symbol";
+
+describe('createSymbolTable', () => {
+    it('creates a symbol table with predefined symbols', () => {
+        const table = createSymbolTable();
+
+        for (let i = 0; i < 16; i++) {
+            expect(table.get(`R${i}`)).toBe(i);
+        }
+
+        expect(table.get('SP')).toBe(0);
+        expect(table.get('LCL')).toBe(1);
+        expect(table.get('ARG')).toBe(2);
+        expect(table.get('THIS')).toBe(3);
+        expect(table.get('THAT')).toBe(4);
+        expect(table.get('SCREEN')).toBe(16384);
+        expect(table.get('KBD')).toBe(24576);
+    });
+});
 
 describe('querySymbol', () => {
     it('returns the address for a known symbol', () => {

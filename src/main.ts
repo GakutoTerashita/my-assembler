@@ -1,13 +1,10 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import {
     advanceParser,
-    comp,
     createParser,
-    dest,
     hasMoreLines,
-    instructionType,
-    symbol
 } from "./lib/parser";
+import { processLine } from "./lib/assembler";
 
 const main = async (): Promise<void> => {
     const fileName: string = process.argv[2];
@@ -17,34 +14,29 @@ const main = async (): Promise<void> => {
         process.exit(1);
     }
 
+    if (!fileName.endsWith('.asm')) {
+        console.error('File must have .asm extension.');
+        process.exit(1);
+    }
+
     const content = await readFile(fileName, 'utf8');
-    console.log(`Content of ${fileName}:\n${content}`);
+    const bins: string[] = [];
 
     let parser = createParser(content);
 
     while (hasMoreLines(parser)) {
-
         parser = advanceParser(parser);
 
-        console.log(`Current instruction: ${parser.instruction}`);
-        const type = instructionType(parser.instruction);
-        console.log(`Instruction type: ${type}`);
+        const bin = processLine(parser.instruction);
 
-        if (type === 'A_INSTRUCTION' || type === 'L_INSTRUCTION') {
-            const sym = symbol(parser.instruction, type);
-            console.log(`Symbol: ${sym}\n`);
-
-            continue;
-        }
-
-        if (type === 'C_INSTRUCTION') {
-            const destPart = dest(parser.instruction);
-            const compPart = comp(parser.instruction);
-            console.log(`Dest: ${destPart}, Comp: ${compPart}\n`);
-
-            continue;
-        }
+        console.log(`${bin} : ${parser.instruction}`);
+        bins.push(bin);
     }
+
+    await writeFile(
+        fileName.replace('.asm', '.hack'),
+        bins.join('\n')
+    );
 };
 
 main().catch(error => console.error('Error occurred:', error));

@@ -1,7 +1,6 @@
 @14
 D=A
 
-(LOOP)
-@HOGE
+@255
 M=D
 0;JMP

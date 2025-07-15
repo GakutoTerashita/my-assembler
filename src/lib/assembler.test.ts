@@ -1,4 +1,4 @@
-import { processLine, querySymbol, registerSymbol, resolveSymbol } from "./assembler";
+import { processLine, querySymbol, queryUsableAddress, registerSymbol, resolveSymbol } from "./assembler";
 
 describe('processLine', () => {
     it('returns the correct binary representation for a valid instruction', () => {
@@ -53,5 +53,36 @@ describe('registerSymbol', () => {
     it('throws an error if the symbol already exists', () => {
         const table = new Map<string, number>([['R0', 0]]);
         expect(() => registerSymbol('R0', 1, table)).toThrow('Symbol R0 already exists with address 0');
+    });
+});
+
+describe('queryUsableAddress', () => {
+    it('returns the next available address', () => {
+        {
+            const table = new Map<string, number>([['R0', 0], ['R1', 1]]);
+            const address = queryUsableAddress(table);
+            expect(address).toBe(2);
+        }
+
+        {
+            const table = new Map<string, number>();
+            const address = queryUsableAddress(table);
+            expect(address).toBe(0);
+        }
+
+        {
+            const table = new Map<string, number>([['R0', 0], ['R1', 1], ['R2', 8]]);
+            const address = queryUsableAddress(table);
+            expect(address).toBe(2);
+        }
+    });
+
+    it('throws an error if no usable address is available', () => {
+        const table = new Map<string, number>();
+        for (let i = 0; i < 16384; i++) {
+            registerSymbol(`R${i}`, i, table);
+        }
+        expect(() => queryUsableAddress(table))
+            .toThrow('No usable address available');
     });
 });

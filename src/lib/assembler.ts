@@ -119,5 +119,14 @@ export const registerSymbol = (
 }
 
 export const queryUsableAddress = (table: SymbolTable): number => {
+    const used = new Set(Array.from(table.values()));
+    let addr = 0;
+    while (used.has(addr)) {
+        addr++;
+    }
 
+    if (addr > 16_383) {
+        throw new Error('No usable address available');
+    }
+    return addr;
 }

@@ -1,15 +1,30 @@
-import { processLine, registerSymbol, resolveSymbol } from "./assembler";
+import { processLine, querySymbol, registerSymbol, resolveSymbol } from "./assembler";
 
 describe('processLine', () => {
     it('returns the correct binary representation for a valid instruction', () => {
-        expect(processLine('@2', 0, new Map()).binary)
+        expect(processLine('@2', new Map()).binary)
             .toBe('0000000000000010');
 
-        expect(processLine('D=A', 1, new Map()).binary)
+        expect(processLine('D=A', new Map()).binary)
             .toBe('1110110000010000');
 
-        expect(processLine('0;JMP', 2, new Map()).binary)
+        expect(processLine('0;JMP', new Map()).binary)
             .toBe('1110101010000111');
+    });
+});
+
+describe('querySymbol', () => {
+    it('returns the address for a known symbol', () => {
+        const table = new Map<string, number>([['R0', 0], ['R1', 1]]);
+        expect(querySymbol('R0', table)).toBe(0);
+        expect(querySymbol('R1', table)).toBe(1);
+    });
+
+    it('registers a new symbol if it does not exist', () => {
+        const table = new Map<string, number>();
+        const address = registerSymbol('R2', 2, table);
+        expect(address).toBe(2);
+        expect(table.get('R2')).toBe(2);
     });
 });
 

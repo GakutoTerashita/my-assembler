@@ -16,33 +16,19 @@ const validateAddressRange = (address: number): void => {
 
 const processInstructionTypeA = (
     instruction: string,
-    lineCount: number,
     table: SymbolTable
 ): ProcessedLine => {
 
     const symbol: string = parser.symbol(instruction, 'A_INSTRUCTION');
-    if (!isNaN(Number(symbol))) {
-        // Symbol is a number, use it directly as address
-        const address = Number(symbol);
-        validateAddressRange(address);
-        return {
-            binary: address.toString(2).padStart(16, '0'),
-            table,
-        };
-    } else {
-        const { hit, address: resolvedAddr } = resolveSymbol(symbol, table);
+    const address = (isNaN(Number(symbol)))
+        ? querySymbol(symbol, table)
+        : Number(symbol);
 
-        const address = hit
-            ? resolvedAddr
-            : registerSymbol(symbol, lineCount + 16, table); // it starts from 16;
-
-        validateAddressRange(address);
-        const body = address.toString(2).padStart(15, '0');
-        return {
-            binary: body.padStart(16, '0'),
-            table,
-        };
-    }
+    validateAddressRange(address);
+    return {
+        binary: address.toString(2).padStart(16, '0'),
+        table,
+    };
 }
 
 const processInstructionTypeC = (
@@ -72,13 +58,12 @@ const processInstructionTypeC = (
  */
 export const processLine = (
     instruction: string,
-    lineCount: number,
     table: SymbolTable
 ): ProcessedLine => {
     const iType = parser.instructionType(instruction);
 
     if (iType === 'A_INSTRUCTION') {
-        return processInstructionTypeA(instruction, lineCount, table);
+        return processInstructionTypeA(instruction, table);
     }
 
     if (iType === 'L_INSTRUCTION') {
@@ -90,6 +75,17 @@ export const processLine = (
     }
 
     throw new Error(`Unknown instruction type: ${iType}`);
+}
+
+export const querySymbol = (
+    symbol: string,
+    table: SymbolTable
+): number => {
+    const { hit, address: resolvedAddr } = resolveSymbol(symbol, table);
+
+    return hit
+        ? resolvedAddr
+        : registerSymbol(symbol, queryUsableAddress(table), table);
 }
 
 interface ResolvedSymbol {
@@ -120,4 +116,8 @@ export const registerSymbol = (
 
     table.set(symbol, address);
     return address;
+}
+
+export const queryUsableAddress = (table: SymbolTable): number => {
+
 }

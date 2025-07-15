@@ -1,5 +1,5 @@
-import * as Parser from "./parser"
-import * as Code from "./code";
+import * as parser_module from "./parser"
+import * as code_module from "./code";
 import {
     createSymbolTable,
     SymbolTable,
@@ -10,20 +10,37 @@ import {
 
 export const assemble = (assembly: string): string[] => {
     const symbolTable = createSymbolTable();
+
+    const preprocess = (
+        parserPre: parser_module.Parser,
+        symbolTable: SymbolTable,
+        lineNumber: number = 0,
+    ) => {
+        if (!parser_module.hasMoreLines(parserPre)) return;
+
+        const nextParser = parser_module.advanceParser(parserPre);
+        preprocessLine(nextParser.instruction, lineNumber, symbolTable);
+        preprocess(nextParser, symbolTable, lineNumber + 1);
+    }
+
     const collectBins = (
-        parser: ReturnType<typeof Parser.createParser>,
-        bins: string[] = []
+        parser: parser_module.Parser,
+        symbolTable: SymbolTable,
+        bins: string[] = [],
     ): string[] => {
 
-        if (!Parser.hasMoreLines(parser)) return bins;
-        const nextParser = Parser.advanceParser(parser);
+        if (!parser_module.hasMoreLines(parser)) return bins;
+        const nextParser = parser_module.advanceParser(parser);
         const bin = processLine(nextParser.instruction, symbolTable);
         console.log(`${bin} : ${nextParser.instruction}`);
-        return collectBins(nextParser, [...bins, bin]);
+        return collectBins(nextParser, symbolTable, [...bins, bin]);
     };
 
-    const parser0 = Parser.createParser(assembly);
-    return collectBins(parser0);
+    const parserPre = parser_module.createParser(assembly);
+    preprocess(parserPre, symbolTable);
+
+    const parser0 = parser_module.createParser(assembly);
+    return collectBins(parser0, symbolTable);
 }
 
 const validateAddressRange = (address: number): void => {
@@ -37,7 +54,7 @@ const processInstructionTypeA = (
     table: SymbolTable
 ): string => {
 
-    const symbol: string = Parser.symbol(instruction, 'A_INSTRUCTION');
+    const symbol: string = parser_module.symbol(instruction, 'A_INSTRUCTION');
     const address = (isNaN(Number(symbol)))
         ? querySymbol(symbol, table)
         : Number(symbol);
@@ -49,13 +66,13 @@ const processInstructionTypeA = (
 const processInstructionTypeC = (
     instruction: string
 ): string => {
-    const destPart = Parser.dest(instruction);
-    const compPart = Parser.comp(instruction);
-    const jumpPart = Parser.jump(instruction);
+    const destPart = parser_module.dest(instruction);
+    const compPart = parser_module.comp(instruction);
+    const jumpPart = parser_module.jump(instruction);
 
-    const destCode = Code.dest(destPart);
-    const compCode = Code.comp(compPart);
-    const jumpCode = Code.jump(jumpPart);
+    const destCode = code_module.dest(destPart);
+    const compCode = code_module.comp(compPart);
+    const jumpCode = code_module.jump(jumpPart);
 
     const body = `${compCode}${destCode}${jumpCode}`;
     return body.padStart(16, '1');
@@ -72,7 +89,7 @@ export const processLine = (
     instruction: string,
     table: SymbolTable
 ): string => {
-    const iType = Parser.instructionType(instruction);
+    const iType = parser_module.instructionType(instruction);
 
     if (iType === 'A_INSTRUCTION') {
         return processInstructionTypeA(instruction, table);
@@ -100,10 +117,10 @@ export const preprocessLine = (
     lineNumber: number,
     table: SymbolTable
 ): void => {
-    const iType = Parser.instructionType(instruction);
+    const iType = parser_module.instructionType(instruction);
 
     if (iType === 'L_INSTRUCTION') {
-        const symbol = Parser.symbol(instruction, iType);
+        const symbol = parser_module.symbol(instruction, iType);
         if (isNaN(Number(symbol))) {
             const { hit } = resolveSymbol(symbol, table);
             if (hit) {

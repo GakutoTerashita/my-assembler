@@ -47,3 +47,19 @@ export const comp = (comp: string): string => {
             throw new Error(`Unknown comp: ${comp}`);
     }
 }
+
+export const jump = (jump: string): string => {
+    switch (jump) {
+        case '': return '000';
+        case 'JGT': return '001';
+        case 'JEQ': return '010';
+        case 'JGE': return '011';
+        case 'JLT': return '100';
+        case 'JNE': return '101';
+        case 'JLE': return '110';
+        case 'JMP': return '111';
+
+        default:
+            throw new Error(`Unknown jump: ${jump}`);
+    }
+}

@@ -1,4 +1,4 @@
-import { comp, dest } from "./code";
+import { comp, dest, jump } from "./code";
 
 describe('dest', () => {
     it('return the correct binary representation for the destination', () => {
@@ -56,5 +56,22 @@ describe('comp', () => {
 
     it('throw an error for invalid comp expressions', () => {
         expect(() => comp('INVALID')).toThrow();
+    });
+});
+
+describe('jump', () => {
+    it('return the correct binary representation for jump', () => {
+        expect(jump('')).toBe('000');
+        expect(jump('JGT')).toBe('001');
+        expect(jump('JEQ')).toBe('010');
+        expect(jump('JGE')).toBe('011');
+        expect(jump('JLT')).toBe('100');
+        expect(jump('JNE')).toBe('101');
+        expect(jump('JLE')).toBe('110');
+        expect(jump('JMP')).toBe('111');
+    });
+
+    it('throw an error for invalid jump expressions', () => {
+        expect(() => jump('INVALID')).toThrow();
     });
 });

@@ -11,6 +11,19 @@ describe('processLine', () => {
         expect(processLine('0;JMP', new Map()).binary)
             .toBe('1110101010000111');
     });
+
+    it('resolves A symbols', () => {
+        const table = new Map<string, number>([['R0', 0], ['R1', 1], ['R15', 15]]);
+        expect(processLine('@R0', table).binary).toBe('0000000000000000');
+        expect(processLine('@R1', table).binary).toBe('0000000000000001');
+        expect(processLine('@R15', table).binary).toBe('0000000000001111');
+
+        processLine('@YIPPEE', table);
+        const yippee = table.get('YIPPEE');
+        expect(yippee).toBe(2);
+
+        expect(processLine('@YIPPEE', table).binary).toBe(`${yippee?.toString(2).padStart(16, '0')}`);
+    })
 });
 
 describe('querySymbol', () => {

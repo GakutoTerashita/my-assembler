@@ -11,62 +11,39 @@ import {
 export const assemble = (assembly: string): string[] => {
     const symbolTable = createSymbolTable();
 
-    const preprocess = (
-        parserPre: parser_module.Parser,
-        symbolTable: SymbolTable,
-        lineNumber: number = -1,
-    ) => {
-
-        if (!parser_module.hasMoreLines(parserPre)) return;
-
+    // 1st pass: preprocess (シンボル登録)
+    let parserPre = parser_module.createParser(assembly);
+    let lineNumber = -1;
+    while (parser_module.hasMoreLines(parserPre)) {
         const nextParser = parser_module.advanceParser(parserPre);
-
-        // L instructions are not counted in line numbers
-        if (!(parser_module.instructionType(nextParser.instruction) === 'L_INSTRUCTION')) {
+        if (parser_module.instructionType(nextParser.instruction) !== 'L_INSTRUCTION') {
             lineNumber++;
             console.log(`Preprocessing: ${nextParser.instruction} at line ${lineNumber}`);
         } else {
             console.log(`Preprocessing L instruction: ${nextParser.instruction}`);
         }
-
         preprocessLine(nextParser.instruction, lineNumber, symbolTable);
-
-        preprocess(
-            nextParser,
-            symbolTable,
-            lineNumber,
-        );
+        parserPre = nextParser;
     }
-
-    const collectBins = (
-        parser: parser_module.Parser,
-        symbolTable: SymbolTable,
-        bins: string[] = [],
-    ): string[] => {
-
-        if (!parser_module.hasMoreLines(parser)) return bins;
-
-        const nextParser = parser_module.advanceParser(parser);
-
-        if (parser_module.instructionType(nextParser.instruction) === 'L_INSTRUCTION') {
-            // Skip L instructions
-            return collectBins(nextParser, symbolTable, bins);
-        }
-
-        const bin = processLine(nextParser.instruction, symbolTable);
-
-        console.log(`${bin} : ${nextParser.instruction}`);
-
-        return collectBins(nextParser, symbolTable, [...bins, bin]);
-    };
-
-    const parserPre = parser_module.createParser(assembly);
-    preprocess(parserPre, symbolTable);
 
     console.log("");
 
-    const parser0 = parser_module.createParser(assembly);
-    return collectBins(parser0, symbolTable);
+    // 2nd pass: collectBins (バイナリ生成)
+    let parser = parser_module.createParser(assembly);
+    const usedVariableSymbolAddr: Set<number> = new Set();
+    const bins: string[] = [];
+    while (parser_module.hasMoreLines(parser)) {
+        const nextParser = parser_module.advanceParser(parser);
+        if (parser_module.instructionType(nextParser.instruction) === 'L_INSTRUCTION') {
+            parser = nextParser;
+            continue;
+        }
+        const bin = processLine(nextParser.instruction, symbolTable, usedVariableSymbolAddr);
+        console.log(`${bin} : ${nextParser.instruction}`);
+        bins.push(bin);
+        parser = nextParser;
+    }
+    return bins;
 }
 
 const validateAddressRange = (address: number): void => {
@@ -77,12 +54,13 @@ const validateAddressRange = (address: number): void => {
 
 const processInstructionTypeA = (
     instruction: string,
-    table: SymbolTable
+    table: SymbolTable,
+    usedVariableSymbolAddr: Set<number>
 ): string => {
 
     const symbol: string = parser_module.symbol(instruction, 'A_INSTRUCTION');
     const address = (isNaN(Number(symbol)))
-        ? querySymbol(symbol, table)
+        ? querySymbol(symbol, table, usedVariableSymbolAddr)
         : Number(symbol);
 
     validateAddressRange(address);
@@ -113,12 +91,13 @@ const processInstructionTypeC = (
  */
 export const processLine = (
     instruction: string,
-    table: SymbolTable
+    table: SymbolTable,
+    usedVariableSymbolAddr: Set<number>
 ): string => {
     const iType = parser_module.instructionType(instruction);
 
     if (iType === 'A_INSTRUCTION') {
-        return processInstructionTypeA(instruction, table);
+        return processInstructionTypeA(instruction, table, usedVariableSymbolAddr);
     }
 
     if (iType === 'L_INSTRUCTION') {

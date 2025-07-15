@@ -27,8 +27,8 @@ describe('createSymbolTable', () => {
 describe('querySymbol', () => {
     it('returns the address for a known symbol', () => {
         const table = new Map<string, number>([['R0', 0], ['R1', 1]]);
-        expect(querySymbol('R0', table)).toBe(0);
-        expect(querySymbol('R1', table)).toBe(1);
+        expect(querySymbol('R0', table, new Set())).toBe(0);
+        expect(querySymbol('R1', table, new Set())).toBe(1);
     });
 
     it('registers a new symbol if it does not exist', () => {
@@ -70,30 +70,24 @@ describe('registerSymbol', () => {
 describe('queryUsableAddress', () => {
     it('returns the next available address', () => {
         {
-            const table = new Map<string, number>([['R0', 0], ['R1', 1]]);
-            const address = queryUsableAddress(table);
-            expect(address).toBe(2);
+            const set = new Set<number>();
+            const address = queryUsableAddress(set);
+            expect(address).toBe(16);
         }
 
         {
-            const table = new Map<string, number>();
-            const address = queryUsableAddress(table);
-            expect(address).toBe(0);
-        }
-
-        {
-            const table = new Map<string, number>([['R0', 0], ['R1', 1], ['R2', 8]]);
-            const address = queryUsableAddress(table);
-            expect(address).toBe(2);
+            const set = new Set<number>([16, 17]);
+            const address = queryUsableAddress(set);
+            expect(address).toBe(18);
         }
     });
 
     it('throws an error if no usable address is available', () => {
-        const table = new Map<string, number>();
+        const set = new Set<number>();
         for (let i = 0; i < 16384; i++) {
-            registerSymbol(`R${i}`, i, table);
+            set.add(i);
         }
-        expect(() => queryUsableAddress(table))
+        expect(() => queryUsableAddress(set))
             .toThrow('No usable address available');
     });
 });

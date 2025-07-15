@@ -18,13 +18,14 @@ export const createSymbolTable = (): SymbolTable => {
 
 export const querySymbol = (
     symbol: string,
-    table: SymbolTable
+    table: SymbolTable,
+    usedVariableSymbolAddr: Set<number>,
 ): number => {
     const { hit, address: resolvedAddr } = resolveSymbol(symbol, table);
 
     return hit
         ? resolvedAddr
-        : registerSymbol(symbol, queryUsableAddress(table), table);
+        : registerSymbol(symbol, queryUsableAddress(usedVariableSymbolAddr), table);
 }
 
 interface ResolvedSymbol {
@@ -57,15 +58,16 @@ export const registerSymbol = (
     return address;
 }
 
-export const queryUsableAddress = (table: SymbolTable): number => {
-    const used = new Set(Array.from(table.values()));
-    let addr = 0;
-    while (used.has(addr)) {
+export const queryUsableAddress = (usedVariableSymbolAddr: Set<number>): number => {
+    let addr = 16;
+    while (usedVariableSymbolAddr.has(addr)) {
         addr++;
     }
 
     if (addr > 16_383) {
         throw new Error('No usable address available');
     }
+
+    usedVariableSymbolAddr.add(addr);
     return addr;
 }

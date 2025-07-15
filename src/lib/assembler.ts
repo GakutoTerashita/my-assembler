@@ -14,15 +14,28 @@ export const assemble = (assembly: string): string[] => {
     const preprocess = (
         parserPre: parser_module.Parser,
         symbolTable: SymbolTable,
-        lineNumber: number = 0,
+        lineNumber: number = -1,
     ) => {
 
         if (!parser_module.hasMoreLines(parserPre)) return;
 
         const nextParser = parser_module.advanceParser(parserPre);
+
+        // L instructions are not counted in line numbers
+        if (!(parser_module.instructionType(nextParser.instruction) === 'L_INSTRUCTION')) {
+            lineNumber++;
+            console.log(`Preprocessing: ${nextParser.instruction} at line ${lineNumber}`);
+        } else {
+            console.log(`Preprocessing L instruction: ${nextParser.instruction}`);
+        }
+
         preprocessLine(nextParser.instruction, lineNumber, symbolTable);
 
-        preprocess(nextParser, symbolTable, lineNumber + 1);
+        preprocess(
+            nextParser,
+            symbolTable,
+            lineNumber,
+        );
     }
 
     const collectBins = (
@@ -34,6 +47,12 @@ export const assemble = (assembly: string): string[] => {
         if (!parser_module.hasMoreLines(parser)) return bins;
 
         const nextParser = parser_module.advanceParser(parser);
+
+        if (parser_module.instructionType(nextParser.instruction) === 'L_INSTRUCTION') {
+            // Skip L instructions
+            return collectBins(nextParser, symbolTable, bins);
+        }
+
         const bin = processLine(nextParser.instruction, symbolTable);
 
         console.log(`${bin} : ${nextParser.instruction}`);
@@ -43,6 +62,8 @@ export const assemble = (assembly: string): string[] => {
 
     const parserPre = parser_module.createParser(assembly);
     preprocess(parserPre, symbolTable);
+
+    console.log("");
 
     const parser0 = parser_module.createParser(assembly);
     return collectBins(parser0, symbolTable);
@@ -131,7 +152,8 @@ export const preprocessLine = (
             if (hit) {
                 throw new Error(`Symbol ${symbol} already exists with address ${table.get(symbol)}`);
             }
-            registerSymbol(symbol, lineNumber + 1, table);
+            const addr = registerSymbol(symbol, lineNumber + 1, table);
+            console.log(`Registered symbol: ${symbol} to address ${addr}`);
         }
     }
 }

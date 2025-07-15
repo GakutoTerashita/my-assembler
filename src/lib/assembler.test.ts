@@ -1,4 +1,4 @@
-import { processLine } from "./assembler";
+import { preprocessLine, processLine } from "./assembler";
 
 describe('processLine', () => {
     it('returns the correct binary representation for a valid instruction', () => {
@@ -24,4 +24,22 @@ describe('processLine', () => {
 
         expect(processLine('@YIPPEE', table)).toBe(`${yippee?.toString(2).padStart(16, '0')}`);
     })
+});
+
+describe('preprocessLine', () => {
+    it('Maps L instructions based on their line number', () => {
+        const table = new Map<string, number>();
+        preprocessLine('(LOOP)', 0, table);
+        expect(table.get('LOOP')).toBe(1);
+
+        preprocessLine('(END)', 99, table);
+        expect(table.get('END')).toBe(100);
+    });
+
+    it('throws an error for duplicate L instructions', () => {
+        const table = new Map<string, number>();
+        preprocessLine('(LOOP)', 0, table);
+        expect(() => preprocessLine('(LOOP)', 100, table))
+            .toThrow('Symbol LOOP already exists with address 1');
+    });
 });

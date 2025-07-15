@@ -1,7 +1,7 @@
 import * as parser from "./parser"
 import * as code from "./code";
 import { advanceParser, createParser, hasMoreLines } from "./parser";
-import { createSymbolTable, SymbolTable, querySymbol } from "./symbol";
+import { createSymbolTable, SymbolTable, querySymbol, registerSymbol, resolveSymbol } from "./symbol";
 
 export const assemble = (assembly: string): string[] => {
     const symbolTable = createSymbolTable();
@@ -59,6 +59,7 @@ const processInstructionTypeC = (
 /**
  * Assembler line processing module
  * @param instruction - The assembly instruction to process
+ * @param table - The symbol table to use for resolving symbols
  * @returns Binary representation of the instruction and an updated symbol table
  * @throws Error if the instruction is invalid
  */
@@ -73,7 +74,7 @@ export const processLine = (
     }
 
     if (iType === 'L_INSTRUCTION') {
-        throw new Error(`Unimplemented for L instruction`);
+        throw new Error(`L instruction should not be processed here: ${instruction}`);
     }
 
     if (iType === 'C_INSTRUCTION') {
@@ -81,4 +82,29 @@ export const processLine = (
     }
 
     throw new Error(`Unknown instruction type: ${iType}`);
+}
+
+/**
+ * Preprocess a line of assembly code for symbol resolution.
+ * @param instruction - The assembly instruction to preprocess
+ * @param lineNumber - The line number of the instruction
+ * @param table - The symbol table to use for resolving symbols
+ */
+export const preprocessLine = (
+    instruction: string,
+    lineNumber: number,
+    table: SymbolTable
+): void => {
+    const iType = parser.instructionType(instruction);
+
+    if (iType === 'L_INSTRUCTION') {
+        const symbol = parser.symbol(instruction, iType);
+        if (isNaN(Number(symbol))) {
+            const { hit } = resolveSymbol(symbol, table);
+            if (hit) {
+                throw new Error(`Symbol ${symbol} already exists with address ${table.get(symbol)}`);
+            }
+            registerSymbol(symbol, lineNumber + 1, table);
+        }
+    }
 }

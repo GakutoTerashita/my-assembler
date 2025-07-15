@@ -2,7 +2,6 @@ import { breakLines } from "./text";
 
 export interface Parser {
     readonly lines: string[];
-    readonly index: number;
     readonly instruction: string;
 }
 
@@ -13,23 +12,38 @@ export type InstructionType =
 
 export const createParser = (content: string): Parser => ({
     lines: breakLines(content),
-    index: 0,
     instruction: "## START OF THE FILE ##",
 });
 
 export const hasMoreLines = (parser: Parser): boolean => (
-    parser.index < parser.lines.length
+    parser.lines.length > 0
 );
 
 export const advanceParser = (parser: Parser): Parser => {
     if (!hasMoreLines(parser)) {
+        if (parser.instruction.trim() === '') {
+            throw new Error("Final line cannot be an empty line.");
+        }
+        if (parser.instruction.startsWith('//')) {
+            throw new Error("Final line cannot be a comment.");
+        }
         throw new Error("No more lines to advance.");
     }
-    return {
+
+    const nextParser: Parser = {
         ...parser,
-        index: parser.index + 1,
-        instruction: parser.lines[parser.index],
+        instruction: parser.lines[0],
+        lines: parser.lines.slice(1),
     };
+
+    if (
+        nextParser.instruction.startsWith('//')
+        || nextParser.instruction.trim() === ''
+    ) {
+        return advanceParser(nextParser);
+    }
+
+    return nextParser;
 }
 
 export const instructionType = (

@@ -10,12 +10,6 @@ describe('Parser', () => {
             expect(parser.lines).toEqual(["Line 1", "Line 2"]);
         });
 
-        it('createParser initializes with currentIndex 0', () => {
-            const content = "Line 1\nLine 2";
-            const parser = createParser(content);
-            expect(parser.index).toBe(0);
-        });
-
     });
 
     describe('hasMoreLines', () => {
@@ -23,7 +17,6 @@ describe('Parser', () => {
         it('returns true when there are more lines', () => {
             const parser: Parser = {
                 lines: ["Line 1", "Line 2"],
-                index: 0,
                 instruction: "## START OF THE FILE ##",
             }
             expect(hasMoreLines(parser)).toBe(true);
@@ -31,8 +24,7 @@ describe('Parser', () => {
 
         it('returns false when no more lines', () => {
             const parser: Parser = {
-                lines: ["Line 1", "Line 2"],
-                index: 2,
+                lines: [],
                 instruction: "## START OF THE FILE ##",
             }
             expect(hasMoreLines(parser)).toBe(false);
@@ -42,21 +34,56 @@ describe('Parser', () => {
 
     describe('advanceParser', () => {
 
-        it('increments the index and sets the instruction', () => {
+        it('consumes the line and sets the instruction', () => {
             const initialParser: Parser = {
                 lines: ["Line 1", "Line 2"],
-                index: 0,
                 instruction: "## START OF THE FILE ##"
             };
             const nextParser = advanceParser(initialParser);
-            expect(nextParser.index).toBe(1);
             expect(nextParser.instruction).toBe("Line 1");
+            expect(nextParser.lines).toEqual(["Line 2"]);
+        });
+
+        it('ignores comments and empty lines', () => {
+            const initialParser: Parser = {
+                lines: [
+                    "",
+                    `// Comment`,
+                    "Line 1",
+                    "Line 2"
+                ],
+                instruction: "## START OF THE FILE ##"
+            };
+            const nextParser = advanceParser(initialParser);
+            expect(nextParser.instruction).toBe("Line 1");
+            expect(nextParser.lines).toEqual(["Line 2"]);
+        });
+
+        it('throws an error if final line is empty line', () => {
+            const parser: Parser = {
+                lines: [
+                    ""
+                ],
+                instruction: "Line 1"
+            };
+            expect(() => advanceParser(parser))
+                .toThrow("Final line cannot be an empty line.");
+        });
+
+        it('throws an error if final line is a comment', () => {
+            const parser: Parser = {
+                lines: [
+                    "// Comment"
+                ],
+                instruction: "Line 1"
+            };
+            expect(() => advanceParser(parser))
+                .toThrow("Final line cannot be a comment.");
         });
 
         it('throws an error if there are no more lines', () => {
-            const parser = {
-                lines: ["Line 1"],
-                index: 1,
+            const parser: Parser = {
+                lines: [],
                 instruction: "Line 1"
             };
             expect(() => advanceParser(parser)).toThrow("No more lines to advance.");

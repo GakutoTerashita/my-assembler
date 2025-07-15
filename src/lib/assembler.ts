@@ -1,11 +1,23 @@
 import * as parser from "./parser"
 import * as code from "./code";
+import { advanceParser, createParser, hasMoreLines } from "./parser";
 
-type SymbolTable = Map<string, number>;
+export const assemble = (assembly: string): string[] => {
+    const symbolTable = createSymbolTable();
+    const collectBins = (
+        parser: ReturnType<typeof createParser>,
+        bins: string[] = []
+    ): string[] => {
 
-interface ProcessedLine {
-    binary: string;
-    table: SymbolTable;
+        if (!hasMoreLines(parser)) return bins;
+        const nextParser = advanceParser(parser);
+        const bin = processLine(nextParser.instruction, symbolTable);
+        console.log(`${bin} : ${nextParser.instruction}`);
+        return collectBins(nextParser, [...bins, bin]);
+    };
+
+    const parser0 = createParser(assembly);
+    return collectBins(parser0);
 }
 
 const validateAddressRange = (address: number): void => {
@@ -17,7 +29,7 @@ const validateAddressRange = (address: number): void => {
 const processInstructionTypeA = (
     instruction: string,
     table: SymbolTable
-): ProcessedLine => {
+): string => {
 
     const symbol: string = parser.symbol(instruction, 'A_INSTRUCTION');
     const address = (isNaN(Number(symbol)))
@@ -25,16 +37,12 @@ const processInstructionTypeA = (
         : Number(symbol);
 
     validateAddressRange(address);
-    return {
-        binary: address.toString(2).padStart(16, '0'),
-        table,
-    };
+    return address.toString(2).padStart(16, '0');
 }
 
 const processInstructionTypeC = (
-    instruction: string,
-    table: SymbolTable
-): ProcessedLine => {
+    instruction: string
+): string => {
     const destPart = parser.dest(instruction);
     const compPart = parser.comp(instruction);
     const jumpPart = parser.jump(instruction);
@@ -44,10 +52,7 @@ const processInstructionTypeC = (
     const jumpCode = code.jump(jumpPart);
 
     const body = `${compCode}${destCode}${jumpCode}`;
-    return {
-        binary: body.padStart(16, '1'),
-        table,
-    };
+    return body.padStart(16, '1');
 }
 
 /**
@@ -59,7 +64,7 @@ const processInstructionTypeC = (
 export const processLine = (
     instruction: string,
     table: SymbolTable
-): ProcessedLine => {
+): string => {
     const iType = parser.instructionType(instruction);
 
     if (iType === 'A_INSTRUCTION') {
@@ -71,10 +76,23 @@ export const processLine = (
     }
 
     if (iType === 'C_INSTRUCTION') {
-        return processInstructionTypeC(instruction, table);
+        return processInstructionTypeC(instruction);
     }
 
     throw new Error(`Unknown instruction type: ${iType}`);
+}
+
+export type SymbolTable = Map<string, number>;
+
+export const createSymbolTable = (): SymbolTable => {
+    const table = new Map<string, number>();
+    // Predefined symbols
+    for (let i = 0; i < 16; i++) {
+        registerSymbol(`R${i}`, i, table);
+    }
+    registerSymbol('SCREEN', 16384, table);
+    registerSymbol('KBD', 24576, table);
+    return table;
 }
 
 export const querySymbol = (

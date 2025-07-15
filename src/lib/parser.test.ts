@@ -1,4 +1,4 @@
-import { advanceParser, comp, createParser, dest, hasMoreLines, instructionType, Parser, symbol } from "./parser";
+import { advanceParser, comp, createParser, dest, hasMoreLines, instructionType, jump, Parser, symbol } from "./parser";
 
 describe('Parser', () => {
 
@@ -114,7 +114,7 @@ describe('Parser', () => {
     });
 
     describe('comp', () => {
-        it('extracts comp from C instruction with dest', () => {
+        it('extracts comp from C instruction', () => {
             expect(comp('D=M')).toBe('M');
         });
 
@@ -122,7 +122,7 @@ describe('Parser', () => {
             expect(comp('M')).toBe('M');
         });
 
-        it('extracts comp from C instruction with jump', () => {
+        it('extracts comp from C instruction without jump', () => {
             expect(comp('D;JGT')).toBe('D');
         });
 
@@ -133,6 +133,20 @@ describe('Parser', () => {
                 .toThrow("Comp part not found in instruction: A=");
             expect(() => comp(';JGT'))
                 .toThrow("Comp part not found in instruction: ;JGT");
+        });
+    });
+
+    describe('jump', () => {
+        it('extracts jump from C instruction', () => {
+            expect(jump('D;JGT')).toBe('JGT');
+        });
+
+        it('returns null if no jump is present', () => {
+            expect(jump('D=M')).toBe(null);
+        });
+
+        it('no semicolon means no jump (returns null)', () => {
+            expect(jump('M')).toBe(null);
         });
     });
 

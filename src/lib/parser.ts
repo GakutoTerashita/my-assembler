@@ -78,3 +78,10 @@ export const comp = (instruction: string): string => {
     }
     return compPart.trim();
 }
+
+export const jump = (instruction: string): string | null => {
+    const jumpPart = instruction.includes(';')
+        ? instruction.split(';')[1]
+        : null;
+    return jumpPart ? jumpPart.trim() : null;
+}

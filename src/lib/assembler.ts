@@ -1,23 +1,28 @@
-import * as parser from "./parser"
-import * as code from "./code";
-import { advanceParser, createParser, hasMoreLines } from "./parser";
-import { createSymbolTable, SymbolTable, querySymbol, registerSymbol, resolveSymbol } from "./symbol";
+import * as Parser from "./parser"
+import * as Code from "./code";
+import {
+    createSymbolTable,
+    SymbolTable,
+    querySymbol,
+    resolveSymbol,
+    registerSymbol
+} from "./symbol";
 
 export const assemble = (assembly: string): string[] => {
     const symbolTable = createSymbolTable();
     const collectBins = (
-        parser: ReturnType<typeof createParser>,
+        parser: ReturnType<typeof Parser.createParser>,
         bins: string[] = []
     ): string[] => {
 
-        if (!hasMoreLines(parser)) return bins;
-        const nextParser = advanceParser(parser);
+        if (!Parser.hasMoreLines(parser)) return bins;
+        const nextParser = Parser.advanceParser(parser);
         const bin = processLine(nextParser.instruction, symbolTable);
         console.log(`${bin} : ${nextParser.instruction}`);
         return collectBins(nextParser, [...bins, bin]);
     };
 
-    const parser0 = createParser(assembly);
+    const parser0 = Parser.createParser(assembly);
     return collectBins(parser0);
 }
 
@@ -32,7 +37,7 @@ const processInstructionTypeA = (
     table: SymbolTable
 ): string => {
 
-    const symbol: string = parser.symbol(instruction, 'A_INSTRUCTION');
+    const symbol: string = Parser.symbol(instruction, 'A_INSTRUCTION');
     const address = (isNaN(Number(symbol)))
         ? querySymbol(symbol, table)
         : Number(symbol);
@@ -44,13 +49,13 @@ const processInstructionTypeA = (
 const processInstructionTypeC = (
     instruction: string
 ): string => {
-    const destPart = parser.dest(instruction);
-    const compPart = parser.comp(instruction);
-    const jumpPart = parser.jump(instruction);
+    const destPart = Parser.dest(instruction);
+    const compPart = Parser.comp(instruction);
+    const jumpPart = Parser.jump(instruction);
 
-    const destCode = code.dest(destPart);
-    const compCode = code.comp(compPart);
-    const jumpCode = code.jump(jumpPart);
+    const destCode = Code.dest(destPart);
+    const compCode = Code.comp(compPart);
+    const jumpCode = Code.jump(jumpPart);
 
     const body = `${compCode}${destCode}${jumpCode}`;
     return body.padStart(16, '1');
@@ -67,7 +72,7 @@ export const processLine = (
     instruction: string,
     table: SymbolTable
 ): string => {
-    const iType = parser.instructionType(instruction);
+    const iType = Parser.instructionType(instruction);
 
     if (iType === 'A_INSTRUCTION') {
         return processInstructionTypeA(instruction, table);
@@ -95,10 +100,10 @@ export const preprocessLine = (
     lineNumber: number,
     table: SymbolTable
 ): void => {
-    const iType = parser.instructionType(instruction);
+    const iType = Parser.instructionType(instruction);
 
     if (iType === 'L_INSTRUCTION') {
-        const symbol = parser.symbol(instruction, iType);
+        const symbol = Parser.symbol(instruction, iType);
         if (isNaN(Number(symbol))) {
             const { hit } = resolveSymbol(symbol, table);
             if (hit) {

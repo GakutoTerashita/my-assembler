@@ -8,41 +8,81 @@ import {
     registerSymbol
 } from "./symbol";
 
+/**
+ * Assemble the given assembly code into machine code.
+ * @param assembly - The assembly code as a string
+ * @returns An array of binary strings representing the machine code
+ */
 export const assemble = (assembly: string): string[] => {
     const symbolTable = createSymbolTable();
 
-    // 1st pass: preprocess (シンボル登録)
-    let parserPre = parser_module.createParser(assembly);
+    registerLabelSymbols(assembly, symbolTable);
+
+    console.log("");
+
+    return collectBinary(assembly, symbolTable);
+}
+
+/**
+ * Register label symbols from assembly code into the symbol table.
+ * @param assembly - The assembly code as a string
+ * @param table - The symbol table to register labels into
+ */
+export const registerLabelSymbols = (assembly: string, table: SymbolTable): void => {
+    let parser = parser_module.createParser(assembly);
     let lineNumber = -1;
-    while (parser_module.hasMoreLines(parserPre)) {
-        const nextParser = parser_module.advanceParser(parserPre);
+
+    while (parser_module.hasMoreLines(parser)) {
+
+        const nextParser = parser_module.advanceParser(parser);
+
         if (parser_module.instructionType(nextParser.instruction) !== 'L_INSTRUCTION') {
             lineNumber++;
             console.log(`Preprocessing: ${nextParser.instruction} at line ${lineNumber}`);
         } else {
             console.log(`Preprocessing L instruction: ${nextParser.instruction}`);
         }
-        preprocessLine(nextParser.instruction, lineNumber, symbolTable);
-        parserPre = nextParser;
+
+        preprocessLine(nextParser.instruction, lineNumber, table);
+
+        parser = nextParser;
+
     }
+}
 
-    console.log("");
-
-    // 2nd pass: collectBins (バイナリ生成)
+/**
+ * Collect binary representations of assembly instructions.
+ * @param assembly - The assembly code as a string
+ * @param table - The symbol table to use for resolving label symbols
+ * @returns An array of binary strings representing the instructions
+ */
+export const collectBinary = (assembly: string, table: SymbolTable): string[] => {
     let parser = parser_module.createParser(assembly);
+
     const usedVariableSymbolAddr: Set<number> = new Set();
     const bins: string[] = [];
+
     while (parser_module.hasMoreLines(parser)) {
+
         const nextParser = parser_module.advanceParser(parser);
+
         if (parser_module.instructionType(nextParser.instruction) === 'L_INSTRUCTION') {
             parser = nextParser;
             continue;
         }
-        const bin = processLine(nextParser.instruction, symbolTable, usedVariableSymbolAddr);
+
+        const bin = processLine(
+            nextParser.instruction,
+            table,
+            usedVariableSymbolAddr
+        );
         console.log(`${bin} : ${nextParser.instruction}`);
         bins.push(bin);
+
         parser = nextParser;
+
     }
+
     return bins;
 }
 
@@ -52,6 +92,13 @@ const validateAddressRange = (address: number): void => {
     }
 }
 
+/**
+ * Process an A-instruction in assembly code.
+ * @param instruction - Single assembly instruction to process
+ * @param table - Symbol table to resolve label symbols
+ * @param usedVariableSymbolAddr - Set to track addresses of used variable symbols
+ * @returns Binary representation of the instruction
+ */
 const processInstructionTypeA = (
     instruction: string,
     table: SymbolTable,
@@ -67,6 +114,11 @@ const processInstructionTypeA = (
     return address.toString(2).padStart(16, '0');
 }
 
+/**
+ * Process a C-instruction in assembly code.
+ * @param instruction - Single assembly instruction to process
+ * @returns Binary representation of the instruction
+ */
 const processInstructionTypeC = (
     instruction: string
 ): string => {

@@ -1,7 +1,7 @@
 {
   "name": "my-assembler",
   "version": "1.0.0",
-  "description": "",
+  "description": "nand2tetris",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node src/main.ts",

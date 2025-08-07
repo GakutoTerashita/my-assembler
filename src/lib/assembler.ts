@@ -174,17 +174,19 @@ export const preprocessLine = (
     lineNumber: number,
     table: SymbolTable
 ): void => {
-    const iType = parser_module.instructionType(instruction);
 
-    if (iType === 'L_INSTRUCTION') {
-        const symbol = parser_module.symbol(instruction, iType);
-        if (isNaN(Number(symbol))) {
-            const { hit } = resolveSymbol(symbol, table);
-            if (hit) {
-                throw new Error(`Symbol ${symbol} already exists with address ${table.get(symbol)}`);
-            }
-            const addr = registerSymbol(symbol, lineNumber + 1, table);
-            console.log(`Registered symbol: ${symbol} to address ${addr}`);
-        }
+    // Only L_INSTRUCTION requires registrations of label symbols.
+    const iType = parser_module.instructionType(instruction);
+    if (iType !== 'L_INSTRUCTION') return;
+
+    // If the label symbol can be interpret as number, that does not require a registration.
+    const symbol = parser_module.symbol(instruction, iType);
+    if (!isNaN(Number(symbol))) return;
+    if (resolveSymbol(symbol, table).hit) {
+        throw new Error(`Symbol ${symbol} already exists with address ${table.get(symbol)}`);
+        // Because this should not be tolerated.
     }
+
+    const addr = registerSymbol(symbol, lineNumber + 1, table);
+    console.log(`Registered symbol: ${symbol} to address ${addr}`);
 }
